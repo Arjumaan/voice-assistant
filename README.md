@@ -31,7 +31,7 @@ cd voice-assistant
 
 ```bash
 python -m venv .venv
-.\.venv\Scripts\activate  # Windows
+.\.venv\Scripts\Activate.ps1  # Windows
 
 3. **Install dependencies**
 
