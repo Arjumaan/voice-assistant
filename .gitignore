@@ -1,13 +1,43 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
 
-# Virtual environments
+# Virtual environment
+.venv/
+env/
 venv/
-.env
+ENV/
+env.bak/
 
-# VSCode
+# VS Code settings
 .vscode/
 
-# Mac
+# macOS
 .DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# PyInstaller
+*.spec
+dist/
+build/
+
+# Log files
+*.log
+
+# IDEs
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# dotenv
+.env
+
+# Other
+*.bak

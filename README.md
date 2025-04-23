@@ -1,43 +1,45 @@
-# 🗣️ Voice Assistant
+# 🧠 Voice Assistant - Desktop AI Assistant
 
-A modular Python-based voice assistant that listens for a wake word, executes commands to open/close software, plays YouTube videos, tells the time, and handles custom queries.
+A Python-based voice assistant that listens for your voice command and performs tasks like telling time, opening apps, and more! Wake it up with a keyword and let it do the magic.
 
-## 🛠️ Features
+## 🚀 Features
 
-- 🔊 Speech-to-text (using `speech_recognition`)
-- 🔈 Text-to-speech (using `pyttsx3`)
-- 🌐 Play YouTube videos via `pywhatkit`
-- ⏰ Tell the current time
-- 🔓 Open and close applications
-- 📝 Easily extendable with custom commands
+- Wake word detection
+- Voice command recognition
+- Real-time feedback via voice
+- Task execution (open websites/apps)
+- Modular code structure
+- Easy to extend with new commands
 
-## 📁 Project Structure
+## 🛠️ Tech Stack
 
-## 🚀 Setup & Run
+- Python 3.10
+- `speech_recognition`
+- `pyttsx3`
+- `PyAudio`
+- Modular Python scripting
 
-1. **Clone the repo**:
-    ```bash
-    git clone https://github.com/YourUsername/voice-assistant.git
-    cd voice-assistant
-    ```
+## 📦 Installation
 
-2. **Install dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+1. **Clone the repo**
 
-3. **Run the assistant**:
-    ```bash
-    python main.py
-    ```
+```bash
+git clone https://github.com/Arjumaan/voice-assistant.git
+cd voice-assistant
 
-4. **Use the wake word** (e.g., “Assistant”) to activate.
+2. **Create and activate virtual environment**
 
-## ⚙️ Customize
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate  # Windows
 
-- **Wake word**: edit `listen_for_wake_word()` default parameter in `utils/recognizer.py`.
-- **Add commands**: expand `handle_custom_commands()` in `features/custom_commands.py`.
+3. **Install dependencies**
 
----
+```bash
+pip install -r requirements.txt
 
-Made with ❤️ by Arju (ByteForge Community)
+4. **Run the assistant**
+
+```bash
+python main.py
+
