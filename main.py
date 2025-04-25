@@ -1,122 +1,104 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTextEdit
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
-from PyQt5.QtGui import QFont, QColor, QTextCharFormat, QTextCursor
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QTextEdit
+from PyQt5.QtGui import QFont, QPalette, QColor, QIcon
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread
+
 from utils.recognizer import listen_for_wake_word, get_command
-from utils.speaker import speak
+from utils.speaker    import speak
 from features.open_close import open_software, close_software
-from features.time_info import tell_time
+from features.time_info  import tell_time
 from features.custom_commands import handle_custom_commands
 
-class AssistantThread(QThread):
-    update_text = pyqtSignal(str, str)  # message, type (info, success, error)
-
-    def run(self):
-        speak("Voice Assistant Initialized. Say 'Jarvis' to wake me up!")
-        self.update_text.emit("Voice Assistant Initialized. Say 'Jarvis' to wake me up!", "info")
-        while True:
-            if listen_for_wake_word():
-                self.update_text.emit("Wake word detected!", "success")
-                while True:
-                    command = get_command()
-                    if command:
-                        if 'stop' in command:
-                            self.update_text.emit("Stopping the program. Goodbye!", "info")
-                            speak('Stopping the program. Goodbye!')
-                            sys.exit()
-                        elif 'open' in command:
-                            software = command.replace('open', '').strip()
-                            open_software(software)
-                            self.update_text.emit(f"Opening {software}...", "success")
-                        elif 'close' in command:
-                            software = command.replace('close', '').strip()
-                            close_software(software)
-                            self.update_text.emit(f"Closing {software}...", "success")
-                        elif 'time' in command:
-                            tell_time()
-                        else:
-                            handle_custom_commands(command)
-                            self.update_text.emit(f"Executed: {command}", "info")
-
 class VoiceAssistantApp(QWidget):
+    log_signal = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Voice Assistant - Jarvis")
-        self.setGeometry(200, 150, 600, 400)
+        # no frameless window for now, you can remove these flags if you want titlebar
+        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.init_ui()
+        self.log_signal.connect(self.log)
 
-        self.setStyleSheet("""
-            QWidget {
-                background-color: #1e1e1e;
-                color: white;
-                font-family: Segoe UI;
-            }
-            QPushButton {
-                background-color: #2d89ef;
-                border: none;
-                padding: 10px;
-                font-size: 14px;
-                border-radius: 8px;
-                color: white;
-            }
-            QPushButton:hover {
-                background-color: #1b5fbd;
-            }
-            QTextEdit {
-                background-color: #2d2d30;
-                color: white;
-                border: 1px solid #444;
-                border-radius: 8px;
-                padding: 8px;
-                font-size: 13px;
-            }
-        """)
+    def init_ui(self):
+        # pick up the icon right beside main.py
+        self.setWindowIcon(QIcon("icon.ico"))
+        self.setWindowTitle("🧠 Voice Assistant")
+        self.setGeometry(300, 200, 600, 400)
+        self.setStyleSheet("background-color: #1e1e2f;")
+
+        palette = QPalette()
+        palette.setColor(QPalette.WindowText, QColor("white"))
+        self.setPalette(palette)
+
+        self.title = QLabel("🧠 Voice Assistant")
+        self.title.setFont(QFont("Arial", 18, QFont.Bold))
+        self.title.setStyleSheet("color: #f5f5f5;")
+        self.title.setAlignment(Qt.AlignCenter)
+
+        self.log_box = QTextEdit()
+        self.log_box.setReadOnly(True)
+        self.log_box.setStyleSheet(
+            "background-color: #2e2e3d; color: white; "
+            "border: 1px solid #444; border-radius: 8px;"
+        )
+
+        self.start_btn = QPushButton("Start Listening 🎙️")
+        self.start_btn.setFont(QFont("Arial", 14))
+        self.start_btn.setStyleSheet(
+            "background-color: #5b78f6; color: white; "
+            "border: none; padding: 10px; border-radius: 10px;"
+        )
+        self.start_btn.clicked.connect(self.start_listening)
 
         layout = QVBoxLayout()
-        self.label = QLabel("👋 Voice Assistant is Ready")
-        self.label.setFont(QFont("Segoe UI", 16, QFont.Bold))
-        self.label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.label)
-
-        self.text_area = QTextEdit()
-        self.text_area.setReadOnly(True)
-        layout.addWidget(self.text_area)
-
-        self.start_button = QPushButton("▶️ Start Assistant")
-        self.start_button.clicked.connect(self.start_assistant)
-        layout.addWidget(self.start_button)
-
-        self.stop_button = QPushButton("⏹️ Stop Assistant")
-        self.stop_button.clicked.connect(self.stop_assistant)
-        layout.addWidget(self.stop_button)
-
+        layout.addWidget(self.title)
+        layout.addWidget(self.log_box)
+        layout.addWidget(self.start_btn)
         self.setLayout(layout)
 
-        self.assistant_thread = AssistantThread()
-        self.assistant_thread.update_text.connect(self.display_message)
+    def log(self, message):
+        self.log_box.append(f"→ {message}")
 
-    def start_assistant(self):
-        self.assistant_thread.start()
-        self.display_message("Voice Assistant Started...", "info")
+    def start_listening(self):
+        # fire up the background thread
+        self.log("Voice Assistant Initialized. Say your wake word to wake me up!")
+        t = CommandThread(self)
+        t.start()
 
-    def stop_assistant(self):
-        self.assistant_thread.terminate()
-        self.display_message("Voice Assistant Stopped.", "error")
+class CommandThread(QThread):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
 
-    def display_message(self, message, msg_type="info"):
-        fmt = QTextCharFormat()
-        if msg_type == "info":
-            fmt.setForeground(QColor("white"))
-        elif msg_type == "success":
-            fmt.setForeground(QColor("#00ff7f"))
-        elif msg_type == "error":
-            fmt.setForeground(QColor("#ff4c4c"))
+    def run(self):
+        try:
+            self.parent.log_signal.emit("Voice Assistant Activated")
+            if listen_for_wake_word():
+                self.parent.log_signal.emit("Wake word detected.")
+                while True:
+                    cmd = get_command()
+                    if cmd:
+                        self.parent.log_signal.emit(f"Command: {cmd}")
+                        if 'stop' in cmd:
+                            speak('Stopping. Goodbye!')
+                            self.parent.log_signal.emit("Assistant stopped.")
+                            QTimer.singleShot(500, self.parent.close)
+                            break
+                        elif 'open' in cmd:
+                            open_software(cmd.replace('open','').strip())
+                        elif 'close' in cmd:
+                            close_software(cmd.replace('close','').strip())
+                        elif 'time' in cmd:
+                            tell_time()
+                        else:
+                            handle_custom_commands(cmd)
+                    else:
+                        self.parent.log_signal.emit("Didn't catch that.")
+        except Exception as e:
+            self.parent.log_signal.emit(f"Error: {e}")
 
-        self.text_area.moveCursor(QTextCursor.End)
-        self.text_area.setCurrentCharFormat(fmt)
-        self.text_area.insertPlainText(f"{message}\n")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app = QApplication(sys.argv)
-    assistant_app = VoiceAssistantApp()
-    assistant_app.show()
+    gui = VoiceAssistantApp()
+    gui.show()
     sys.exit(app.exec_())
