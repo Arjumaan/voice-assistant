@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QTextEdit
 from PyQt5.QtGui import QFont, QPalette, QColor, QIcon
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread
+from PyQt5.QtWidgets import QHBoxLayout
 
 from utils.recognizer import listen_for_wake_word, get_command
 from utils.speaker    import speak
@@ -15,12 +16,11 @@ class VoiceAssistantApp(QWidget):
     def __init__(self):
         super().__init__()
         # no frameless window for now, you can remove these flags if you want titlebar
-        self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Window)
         self.init_ui()
         self.log_signal.connect(self.log)
 
     def init_ui(self):
-        # pick up the icon right beside main.py
         self.setWindowIcon(QIcon("icon.ico"))
         self.setWindowTitle("🧠 Voice Assistant")
         self.setGeometry(300, 200, 600, 400)
@@ -55,6 +55,16 @@ class VoiceAssistantApp(QWidget):
         layout.addWidget(self.log_box)
         layout.addWidget(self.start_btn)
         self.setLayout(layout)
+        
+        self.stop_btn = QPushButton("Stop Listening 🔇")
+        self.stop_btn.setFont(QFont("Arial", 14))
+        self.start_btn.setStyleSheet(
+            "background-color: #5b78f6; color: white; "
+            "border: none; padding: 10px; border-radius: 10px;"
+        )
+        self.stop_btn.clicked.connect(self.stop_listening)
+        
+        layout.addWidget(self.stop_btn)
 
     def log(self, message):
         self.log_box.append(f"→ {message}")
@@ -64,6 +74,23 @@ class VoiceAssistantApp(QWidget):
         self.log("Voice Assistant Initialized. Say your wake word to wake me up!")
         t = CommandThread(self)
         t.start()
+        
+    def start_listening(self):
+        self.log("Voice Assistant Initialized. Say your wake word to wake me up!")
+        self.thread = CommandThread(self)
+        self.thread.start()
+        self.start_btn.setEnabled(False)
+        self.stop_btn.setEnabled(True)
+        
+    def stop_listening(self):
+    # if you kept a reference to your thread, you can signal it to end
+        if hasattr(self, 'thread') and self.thread.isRunning():
+         self.thread.terminate()   # force‐stop (or better yet, use a flag inside the thread)
+        self.log("Assistant stopped by user.")
+        self.start_btn.setEnabled(True)
+        self.stop_btn.setEnabled(False)
+        self.log_box.clear()
+
 
 class CommandThread(QThread):
     def __init__(self, parent):
