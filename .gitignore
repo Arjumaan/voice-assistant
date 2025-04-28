@@ -1,43 +1,33 @@
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / cache
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual environment
-.venv/
-env/
-venv/
-ENV/
-env.bak/
+# PyInstaller
+#  Files created after you build
+dist/
+build/
+*.spec
 
-# VS Code settings
+# Virtual environments
+venv/
+env/
+
+# VS Code
 .vscode/
 
-# macOS
+# MacOS
 .DS_Store
 
 # Windows
 Thumbs.db
-ehthumbs.db
-Desktop.ini
+desktop.ini
 
-# PyInstaller
-*.spec
-dist/
-build/
-
-# Log files
+# Logs
 *.log
 
-# IDEs
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
+# Executable
+*.exe
 
-# dotenv
-.env
-
-# Other
-*.bak
+# Icons or temporary assets if not final
+assets/temp/
