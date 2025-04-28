@@ -146,6 +146,5 @@ voice-assistant/
 
 ## 🧹 License
 
-This project is licensed under the MIT License — free to use and modify!  
-Feel free to give ⭐ if you find it useful!
+This project is private and belongs to the author.
 
